@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Tank Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: #f7f7f7;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 15px 0;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+        
+        .pump-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 26px;
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        .tank-level {
+            margin-top: 20px;
+        }
+        
+        .update-time {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 15px;
+        }
+        
+        .level-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .level-bar {
+            width: 60%;
+            height: 180px;
+            border: 1px solid #ddd;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .level-marker {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4d9bff;
+            height: 40%;
+            transition: height 1s;
+        }
+        
+        .level-marker-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            border-top: 1px dashed #ff0000;
+        }
+        
+        .level-percentage {
+            font-size: 36px;
+            font-weight: 500;
+            margin-left: 20px;
+            width: 35%;
+            text-align: center;
+        }
+        
+        .level-scale {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+            padding: 5px 5px 5px 0;
+        }
+        
+        .system-status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .warning-status {
+            background-color: #ffcccb;
+        }
+        
+        .ok-status {
+            background-color: #c8e6c9;
+        }
+        
+        .standby-status {
+            background-color: #fff9c4;
+        }
+        
+        .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .status-title.warning {
+            color: #d32f2f;
+        }
+        
+        .status-title.ok {
+            color: #2e7d32;
+        }
+        
+        .status-title.standby {
+            color: #ff6f00;
+        }
+        
+        .status-message {
+            font-size: 14px;
+        }
+        
+        .status-message.warning {
+            color: #d32f2f;
+        }
+        
+        .status-message.ok {
+            color: #2e7d32;
+        }
+        
+        .status-message.standby {
+            color: #ff6f00;
+        }
+        
+        .history {
+            margin-top: 20px;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .history-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .history-tabs {
+            display: flex;
+        }
+        
+        .tab {
+            font-size: 14px;
+            background-color: #e3f2fd;
+            color: #2196F3;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .chart {
+            height: 120px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .chart-line {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .x-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+        
+        .y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .countdown {
+            margin-left: 5px;
+            font-weight: normal;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .level-percentage {
+                font-size: 30px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        WATER TANK MONITOR
+    </header>
+    
+    <div class="card">
+        <div class="pump-status">
+            <div>
+                <div style="font-weight: 600; font-size: 16px;">BOREHOLE PUMP SWITCH</div>
+                <div class="status-label">PUMP STATUS: <span id="pump-status-text">OFF</span></div>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="pump-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="card tank-level">
+        <div>
+            <div style="font-weight: 600; font-size: 16px;">WATER TANK LEVEL</div>
+            <div class="update-time">NEXT UPDATE: <span id="countdown">4</span> SECONDS</div>
+        </div>
+        
+        <div class="level-container">
+            <div class="level-bar">
+                <div class="level-marker" id="level-marker"></div>
+                <div class="level-marker-line"></div>
+                <div class="level-scale">
+                    <div>100%</div>
+                    <div>50%</div>
+                    <div>0%</div>
+                </div>
+            </div>
+            <div class="level-percentage" id="level-percentage">40%</div>
+        </div>
+        
+        <div class="system-status standby-status" id="system-status">
+            <div class="status-title standby" id="status-title">SYSTEM STATUS: STANDBY</div>
+            <div class="status-message standby" id="status-message">Pump is off, tank level stable</div>
+        </div>
+    </div>
+    
+    <div class="card history">
+        <div class="history-header">
+            <div class="history-title">WATER LEVEL HISTORY</div>
+            <div class="history-tabs">
+                <div class="tab active" id="day-tab">Day</div>
+                <div class="tab" id="week-tab">Week</div>
+                <div class="tab" id="month-tab">Month</div>
+            </div>
+        </div>
+        
+        <div class="chart">
+            <svg class="chart-line" viewBox="0 0 300 100" preserveAspectRatio="none">
+                <path id="history-path" d="M0,60 C20,58 40,59 60,60 C80,61 100,65 120,60 C140,55 160,52 180,50 C200,48 220,30 240,40 C260,50 280,60 300,60" stroke="#2196F3" stroke-width="2" fill="none" />
+            </svg>
+            <div class="y-axis">
+                <div>100%</div>
+                <div>50%</div>
+                <div>0%</div>
+            </div>
+        </div>
+        
+        <div class="x-axis">
+            <div>HOURS</div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const pumpToggle = document.getElementById('pump-toggle');
+        const pumpStatusText = document.getElementById('pump-status-text');
+        const levelMarker = document.getElementById('level-marker');
+        const levelPercentage = document.getElementById('level-percentage');
+        const systemStatus = document.getElementById('system-status');
+        const statusTitle = document.getElementById('status-title');
+        const statusMessage = document.getElementById('status-message');
+        const countdownElement = document.getElementById('countdown');
+        const historyPath = document.getElementById('history-path');
+        
+        // Tabs
+        const dayTab = document.getElementById('day-tab');
+        const weekTab = document.getElementById('week-tab');
+        const monthTab = document.getElementById('month-tab');
+        
+        // Variables for water level simulation
+        let currentLevel = 40;
+        let countdown = 4;
+        let historyData = [40];
+        const historyLength = 20;
+        
+        // Initialize the display
+        levelMarker.style.height = `${currentLevel}%`;
+        levelPercentage.textContent = `${Math.round(currentLevel)}%`;
+        
+        // Toggle pump switch event
+        pumpToggle.addEventListener('change', function() {
+            if (this.checked) {
+                pumpStatusText.textContent = 'ON';
+            } else {
+                pumpStatusText.textContent = 'OFF';
+            }
+        });
+        
+        // Tab switching
+        dayTab.addEventListener('click', function() {
+            dayTab.classList.add('active');
+            weekTab.classList.remove('active');
+            monthTab.classList.remove('active');
+        });
+        
+        weekTab.addEventListener('click', function() {
+            dayTab.classList.remove('active');
+            weekTab.classList.add('active');
+            monthTab.classList.remove('active');
+        });
+        
+        monthTab.addEventListener('click', function() {
+            dayTab.classList.remove('active');
+            weekTab.classList.remove('active');
+            monthTab.classList.add('active');
+        });
+        
+        // Update water level function
+        function updateWaterLevel() {
+            // Change level based on pump status
+            if (pumpToggle.checked) {
+                // Pump is ON - increase water level
+                currentLevel += 2;
+                
+                // If level reaches 90%, turn off pump automatically
+                if (currentLevel >= 90) {
+                    pumpToggle.checked = false;
+                    pumpStatusText.textContent = 'OFF';
+                }
+            } else {
+                // Pump is OFF - decrease water level
+                currentLevel -= 2;
+            }
+            
+            // Ensure level stays within bounds
+            currentLevel = Math.max(5, Math.min(95, currentLevel));
+            
+            // Update display
+            levelMarker.style.height = `${currentLevel}%`;
+            levelPercentage.textContent = `${Math.round(currentLevel)}%`;
+            
+            // Update system status based on conditions
+            updateSystemStatus();
+            
+            // Update history graph
+            updateHistoryGraph();
+        }
+        
+        function updateSystemStatus() {
+            // Reset all classes
+            systemStatus.classList.remove('warning-status', 'ok-status', 'standby-status');
+            statusTitle.classList.remove('warning', 'ok', 'standby');
+            statusMessage.classList.remove('warning', 'ok', 'standby');
+            
+            if (currentLevel < 20) {
+                // Warning - low level
+                systemStatus.classList.add('warning-status');
+                statusTitle.classList.add('warning');
+                statusMessage.classList.add('warning');
+                statusTitle.textContent = 'SYSTEM STATUS: WARNING!';
+                statusMessage.textContent = 'Water level critically low';
+            } else if (pumpToggle.checked) {
+                // Pump is ON
+                systemStatus.classList.add('ok-status');
+                statusTitle.classList.add('ok');
+                statusMessage.classList.add('ok');
+                statusTitle.textContent = 'SYSTEM STATUS: OPERATIONAL';
+                statusMessage.textContent = 'Tank filling';
+            } else if (currentLevel >= 90) {
+                // Tank is full
+                systemStatus.classList.add('ok-status');
+                statusTitle.classList.add('ok');
+                statusMessage.classList.add('ok');
+                statusTitle.textContent = 'SYSTEM STATUS: OPERATIONAL';
+                statusMessage.textContent = 'Tank full';
+            } else {
+                // Standby - normal operation
+                systemStatus.classList.add('standby-status');
+                statusTitle.classList.add('standby');
+                statusMessage.classList.add('standby');
+                statusTitle.textContent = 'SYSTEM STATUS: STANDBY';
+                statusMessage.textContent = 'Pump is off, tank level decreasing';
+            }
+        }
+        
+        function updateHistoryGraph() {
+            // Add current level to history and remove old data if needed
+            historyData.push(currentLevel);
+            if (historyData.length > historyLength) {
+                historyData.shift();
+            }
+            
+            // Create SVG path for the history graph
+            let pathData = '';
+            for (let i = 0; i < historyData.length; i++) {
+                // Convert data to SVG coordinates
+                const x = (i / (historyLength - 1)) * 300;
+                const y = 100 - (historyData[i] / 100 * 100);
+                
+                if (i === 0) {
+                    pathData = `M${x},${y}`;
+                } else {
+                    pathData += ` L${x},${y}`;
+                }
+            }
+            
+            // Update the path
+            historyPath.setAttribute('d', pathData);
+        }
+        
+        function updateCountdown() {
+            countdown--;
+            if (countdown <= 0) {
+                countdown = 4;
+                updateWaterLevel();
+            }
+            countdownElement.textContent = countdown;
+        }
+        
+        // Set interval for countdown
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>

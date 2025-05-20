@@ -12,7 +12,7 @@ The system consists of three main components:
 - A solar-powered water tank monitoring station
 - A pump control station
 - A web interface accessible from any device
-
+ 
 Demo
 A functional demo of the web interface is included in this repository. Open the water-tank-interface.html file in any browser to interact with the simulated system:
 - Toggle the pump switch to see the water level change
